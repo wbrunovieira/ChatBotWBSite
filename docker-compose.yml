@@ -1,0 +1,71 @@
+version: "3.8"
+services:
+    backend:
+        build:
+            context: ./chatbot-wbsistemasNodeTSPostgress
+            dockerfile: Dockerfile
+        container_name: backend
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./chatbot-wbsistemasNodeTSPostgress:/usr/src/app
+        environment:
+            - NODE_ENV=development
+        depends_on:
+            - postgres
+        networks:
+            - app-network
+
+    frontend:
+        build:
+            context: ./chatbot-wbsistemas-viteReactTsPOstgress
+            dockerfile: Dockerfile
+        container_name: frontend
+        ports:
+            - "5173:5173"
+        volumes:
+            - ./chatbot-wbsistemas-viteReactTsPOstgress:/usr/src/app
+        environment:
+            - NODE_ENV=development
+        depends_on:
+            - backend
+        networks:
+            - app-network
+
+    postgres:
+        image: postgres:latest
+        container_name: postgres
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: your_user
+            POSTGRES_PASSWORD: your_password
+            POSTGRES_DB: your_db
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        networks:
+            - app-network
+
+    milvus-lite:
+        build:
+            context: ./chatbot-wbPythonMilvus
+            dockerfile: Dockerfile
+        container_name: milvus-lite
+        working_dir: /app
+
+        networks:
+            - app-network
+        environment:
+            - PYTHONUNBUFFERED=1
+        depends_on:
+            - postgres
+        volumes:
+            - ./milvus_data:/var/lib/milvus
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    pgdata:
+    milvus_data:
