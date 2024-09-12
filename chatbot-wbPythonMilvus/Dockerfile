@@ -1,11 +1,11 @@
 FROM python:3.9-slim
 
 
-RUN pip install -U pymilvus
+RUN pip install -U pymilvus fastapi uvicorn
 
 
 WORKDIR /app
 
-COPY milvus_script.py /app/milvus_script.py
+COPY app.py /app/app.py
 
-CMD ["python", "milvus_script.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
