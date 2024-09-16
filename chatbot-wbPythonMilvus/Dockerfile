@@ -1,7 +1,8 @@
 FROM python:3.9-slim
 
 
-RUN pip install -U pymilvus fastapi uvicorn
+RUN pip install -U pymilvus fastapi uvicorn spacy && \
+python -m spacy download en_core_web_sm
 
 
 WORKDIR /app
