@@ -38,6 +38,13 @@ def add_text(data: TextData):
         doc = nlp(data.text)
         embedding = doc.vector
 
+        if len(embedding) < VECTOR_DIMENSION:
+            # Padding if the embedding is smaller than required
+            embedding = np.pad(embedding, (0, VECTOR_DIMENSION - len(embedding)), mode='constant')
+        elif len(embedding) > VECTOR_DIMENSION:
+            # Truncating if the embedding is larger than required
+            embedding = embedding[:VECTOR_DIMENSION]
+
    
         embedding = np.array(embedding, dtype=np.float32).tolist()
 
