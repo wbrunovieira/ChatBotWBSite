@@ -1,18 +1,23 @@
 from fastapi import FastAPI, HTTPException
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Milvus
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Milvus
+from langchain_milvus import MilvusVectorStore
 
 app = FastAPI()
 
-# Initialize LangChain components
-memory = ConversationBufferMemory()
-vectorstore = Milvus(connection_args={"host": "milvus-lite", "port": "8000"})
 
-# Example chain for conversational retrieval
+memory = ConversationBufferMemory()
+
+vectorstore = MilvusVectorStore(
+    connection_args={"host": "milvus-lite", "port": "8000"},
+    embedding_function=OpenAIEmbeddings()
+)
+
+
 retrieval_chain = ConversationalRetrievalChain(
-    llm=OpenAIEmbeddings(),  # Replace with your specific LLM if needed
+    llm=OpenAIEmbeddings(),  
     retriever=vectorstore.as_retriever(),
     memory=memory
 )

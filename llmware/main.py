@@ -3,12 +3,22 @@ from llmware.models import ModelCatalog
 
 app = FastAPI()
 
-# Initialize the ModelCatalog to explore available models
+
 model_catalog = ModelCatalog()
 
 @app.get("/")
 def read_root():
     return {"message": "LLMWare Service running successfully"}
+
+
+@app.get("/models")
+def list_models():
+    try:
+        models = model_catalog.list_all_models()  
+        return {"available_models": models}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing models: {str(e)}")
+
 
 @app.post("/inference")
 def run_inference(model_name: str, prompt: str):
@@ -18,3 +28,8 @@ def run_inference(model_name: str, prompt: str):
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error running inference: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8501)
+
