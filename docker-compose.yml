@@ -1,147 +1,148 @@
-version: "3.8"
+version: '3.8'
 services:
-    backend:
-        build:
-            context: ./chatbot-wbsistemasNodeTSPostgress
-            dockerfile: Dockerfile
-        container_name: backend
-        ports:
-            - "3000:3000"
-        volumes:
-            - ./chatbot-wbsistemasNodeTSPostgress:/usr/src/app
-        environment:
-            - NODE_ENV=development
-        depends_on:
-            - postgres
-        networks:
-            - app-network
+  backend:
+    build:
+      context: ./chatbot-wbsistemasNodeTSPostgress
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./chatbot-wbsistemasNodeTSPostgress:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - postgres
+    networks:
+      - app-network
 
-    frontend:
-        build:
-            context: ./chatbot-wbsistemas-viteReactTsPOstgress
-            dockerfile: Dockerfile
-        container_name: frontend
-        ports:
-            - "5173:5173"
-        volumes:
-            - ./chatbot-wbsistemas-viteReactTsPOstgress:/usr/src/app
-            - /usr/src/app/node_modules
-        environment:
-            - NODE_ENV=development
-        command: npm run dev -- --host
-        depends_on:
-            - backend
-        networks:
-            - app-network
+  frontend:
+    build:
+      context: ./chatbot-wbsistemas-viteReactTsPOstgress
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./chatbot-wbsistemas-viteReactTsPOstgress:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host
+    depends_on:
+      - backend
+    networks:
+      - app-network
 
-    postgres:
-        image: postgres:latest
-        container_name: postgres
-        ports:
-            - "5432:5432"
-        environment:
-            POSTGRES_USER: your_user
-            POSTGRES_PASSWORD: your_password
-            POSTGRES_DB: your_db
-        volumes:
-            - pgdata:/var/lib/postgresql/data
-        networks:
-            - app-network
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
 
-    milvus-lite:
-        build:
-            context: ./chatbot-wbPythonMilvus
-            dockerfile: Dockerfile
-        container_name: milvus-lite
-        working_dir: /app
-        networks:
-            - app-network
-        environment:
-            - PYTHONUNBUFFERED=1
-        depends_on:
-            - postgres
-        volumes:
-            - ./milvus_data:/var/lib/milvus
-        ports:
-            - "8000:8000"
+  milvus-lite:
+    build:
+      context: ./chatbot-wbPythonMilvus
+      dockerfile: Dockerfile
+    container_name: milvus-lite
+    working_dir: /app
+    networks:
+      - app-network
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - postgres
+    volumes:
+      - ./milvus_data:/var/lib/milvus
+    ports:
+      - '8000:8000'
 
-    llmware-service:
-        build:
-            context: ./llmware
-            dockerfile: Dockerfile
-        container_name: llmware-service
-        init: true
-        working_dir: /app
-        networks:
-            - app-network
-        environment:
-            - PYTHONUNBUFFERED=1
-        depends_on:
-            - milvus-lite
-        volumes:
-            - ./llmware_data:/app/data 
-        ports:
-            - "8501:8501"
+  llmware-service:
+    build:
+      context: ./llmware
+      dockerfile: Dockerfile
+    container_name: llmware-service
+    init: true
+    working_dir: /app
+    networks:
+      - app-network
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - milvus-lite
+    volumes:
+      - ./llmware_data:/app/data
+    ports:
+      - '8501:8501'
 
-    crewai-service:
-        build:
-            context: ./crewai
-            dockerfile: Dockerfile
-        container_name: crewai-service
-        working_dir: /app
-        networks:
-            - app-network
-        environment:
-            - PYTHONUNBUFFERED=1
-        depends_on:
-            - milvus-lite
-        volumes:
-            - ./crewai_data:/app/data
-        ports:
-            - "8502:8502"
+  crewai-service:
+    build:
+      context: ./crewai
+      dockerfile: Dockerfile
+    container_name: crewai-service
+    working_dir: /app
+    networks:
+      - app-network
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - milvus-lite
+    volumes:
+      - ./crewai_data:/app/data
+    ports:
+      - '8502:8502'
 
-    copilotkit-service:
-        build:
-            context: ./copilotkit
-            dockerfile: Dockerfile
-        container_name: copilotkit-service
-        working_dir: /app
-        networks:
-            - app-network
-        environment:
-            - PYTHONUNBUFFERED=1
-        depends_on:
-            - milvus-lite
-        volumes:
-            - ./copilotkit_data:/app/data
-        ports:
-            - "8503:8503"
+  # copilotkit-service:
+  #     build:
+  #         context: ./copilotkit
+  #         dockerfile: Dockerfile
+  #     container_name: copilotkit-service
+  #     working_dir: /app
+  #     networks:
+  #         - app-network
+  #     environment:
+  #         - PYTHONUNBUFFERED=1
+  #     depends_on:
+  #         - milvus-lite
+  #     volumes:
+  #         - ./copilotkit_data:/app/data
+  #     ports:
+  #         - "8503:8503"
 
-    langchain-service:
-        build:
-            context: ./langchain
-            dockerfile: Dockerfile
-        container_name: langchain-service
-        working_dir: /app
-        networks:
-            - app-network
-        environment:
-            - PYTHONUNBUFFERED=1
-        depends_on:
-            - milvus-lite
-        volumes:
-            - ./langchain_data:/app/data
-        ports:
-            - "8504:8504"
+  langchain-service:
+    build:
+      context: ./langchain
+      dockerfile: Dockerfile
+    container_name: langchain-service
+    working_dir: /app
+    networks:
+      - app-network
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - milvus-lite
+    volumes:
+      - ./langchain_data:/app/data
+    ports:
+      - '8504:8504'
 
 networks:
-    app-network:
-        driver: bridge
+  app-network:
+    driver: bridge
 
 volumes:
-    pgdata:
-    milvus_data:
-    llmware_data:
-    crewai_data:
-    copilotkit_data:
-    langchain_data:
+  pgdata:
+  milvus_data:
+  llmware_data:
+  crewai_data:
+  copilotkit_data:
+  langchain_data:
